@@ -1,0 +1,157 @@
+# =============================================================================
+# GITIGNORE - DỰ BÁO CHẤT LƯỢNG KHÔNG KHÍ HÀ NỘI
+# =============================================================================
+
+# =============================================================================
+# FILES CẦN GIỮ (KHÔNG IGNORE)
+# =============================================================================
+# - Báo cáo đánh giá model
+# - Dữ liệu và output liên quan PM2.5
+# - Files cấu hình và model
+
+# =============================================================================
+# PYTHON
+# =============================================================================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# =============================================================================
+# JUPYTER NOTEBOOK
+# =============================================================================
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# Jupyter Notebook config
+jupyter_notebook_config.py
+
+# =============================================================================
+# IDE / EDITORS
+# =============================================================================
+# VSCode
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Spyder
+.spyderproject
+.spyproject
+
+# =============================================================================
+# PYTHON SCRIPTS TRÙNG LẶP (ĐÃ CÓ TRONG NOTEBOOK)
+# =============================================================================
+# Các file .py này trùng chức năng với notebook
+model_evaluation.py
+tif_to_prediction_map.py
+
+# =============================================================================
+# OUTPUT PM2.5 (GIỮ LOCAL - KHÔNG PUSH)
+# =============================================================================
+# Dữ liệu và bản đồ PM2.5 chỉ giữ ở máy local
+output_csv_pm25/
+output_images_pm25/
+
+# =============================================================================
+# FILES TẠM / DRAFT / CŨ
+# =============================================================================
+# Báo cáo cũ/draft (nếu có)
+BAO_CAO_TIEN_DO_NHOM_2.txt
+BAO_CAO_TOM_TAT.txt
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+
+# =============================================================================
+# SYSTEM FILES
+# =============================================================================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+*~
+
+# =============================================================================
+# DATA FILES (TUY CHỌN - UNCOMMENT NẾU MUỐN IGNORE)
+# =============================================================================
+# Nếu dữ liệu quá lớn, có thể ignore và tải riêng
+# Feature_Maps-20251116T094941Z-1-001/
+# *.tif
+# *.csv
+
+# =============================================================================
+# LOG FILES
+# =============================================================================
+*.log
+logs/
+*.out
+
+# =============================================================================
+# PUSH LÊN GIT (QUAN TRỌNG)
+# =============================================================================
+# !output_csv/               ← Kết quả AQI (CSV) - PUSH
+# !output_images/            ← Bản đồ AQI (PNG) - PUSH
+# !output_reports/           ← Báo cáo đánh giá - PUSH
+# !*.pth                     ← Models - PUSH
+# !*.pkl                     ← Preprocessing objects - PUSH
+# !onkk-model-test.ipynb     ← Notebook chính - PUSH
+# !data_onkk (2).csv         ← Test data - PUSH
+# !.gitignore                ← File này - PUSH
+
+# =============================================================================
+# GIỮ LOCAL (KHÔNG PUSH)
+# =============================================================================
+# output_csv_pm25/           ← Kết quả PM2.5 - CHỈ GIỮ LOCAL
+# output_images_pm25/        ← Bản đồ PM2.5 - CHỈ GIỮ LOCAL
