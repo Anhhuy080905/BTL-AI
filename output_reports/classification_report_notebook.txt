@@ -4,12 +4,32 @@
 
 Số mẫu test: 1804
 
+Phân bố AQI class trong tập test:
+  - Kém: 425 mẫu
+  - Rất xấu: 9 mẫu
+  - Trung bình: 951 mẫu
+  - Tốt: 251 mẫu
+  - Xấu: 168 mẫu
+
 CÁC CHỈ SỐ ĐÁNH GIÁ PHÂN LỚP:
 ----------------------------------------------------------------------
-1. Accuracy: 0.5516 (55.16%)
-2. Precision (weighted): 0.6479
-3. Recall (weighted): 0.5516
-4. F1-Score (weighted): 0.5538
+1. ACCURACY (Độ chính xác): 0.5516 (55.16%)
+   → Tỷ lệ dự đoán đúng trên tổng số mẫu test
+
+2. PRECISION (Độ chính xác từng class):
+   - Macro avg: 0.6730
+   - Weighted avg: 0.6479
+   → Trong các mẫu được dự đoán là class X, bao nhiêu % thực sự là X
+
+3. RECALL (Độ phủ):
+   - Macro avg: 0.7122
+   - Weighted avg: 0.5516
+   → Trong tất cả mẫu thực sự là class X, mô hình tìm ra được bao nhiêu %
+
+4. F1-SCORE (Điểm cân bằng):
+   - Macro avg: 0.6493
+   - Weighted avg: 0.5538
+   → Điểm cân bằng giữa Precision và Recall
 
 ======================================================================
 CLASSIFICATION REPORT CHI TIẾT
@@ -27,12 +47,39 @@ CLASSIFICATION REPORT CHI TIẾT
 weighted avg       0.65      0.55      0.55      1804
 
 ======================================================================
-CONFUSION MATRIX
+CONFUSION MATRIX (Ma trận nhầm lẫn)
 ======================================================================
 Classes: ['Kém', 'Rất xấu', 'Trung bình', 'Tốt', 'Xấu']
 
+Matrix (hàng = thực tế, cột = dự đoán):
 [[259   0 142  10  14]
  [  0   9   0   0   0]
  [105   0 386 450  10]
  [  0   0   5 246   0]
  [ 69   1   3   0  95]]
+
+Tỷ lệ dự đoán đúng từng class:
+  - Kém: 259/425 = 60.9%
+  - Rất xấu: 9/9 = 100.0%
+  - Trung bình: 386/951 = 40.6%
+  - Tốt: 246/251 = 98.0%
+  - Xấu: 95/168 = 56.5%
+
+======================================================================
+KẾT LUẬN
+======================================================================
+
+✓ Mô hình AQI Classification đạt Accuracy = 55.16%
+✓ F1-Score (weighted) = 0.5538
+✓ Precision (weighted) = 0.6479
+✓ Recall (weighted) = 0.5516
+
+→ MÔ HÌNH TRUNG BÌNH: Accuracy 50-60%, cần cải thiện nhưng có thể sử dụng
+
+Điểm mạnh:
+  - Class "Rất xấu" và "Tốt" được phân loại rất tốt (98-100% recall)
+  - Precision cao cho class "Rất xấu", "Xấu" (0.80-0.90)
+
+Điểm yếu:
+  - Class "Trung bình" có recall thấp (41%) - hay nhầm với "Tốt"
+  - Precision của class "Tốt" thấp (35%) - hay dự đoán nhầm
