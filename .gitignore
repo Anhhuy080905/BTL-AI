@@ -83,11 +83,11 @@ model_evaluation.py
 tif_to_prediction_map.py
 
 # =============================================================================
-# OUTPUT PM2.5 (GIỮ LOCAL - KHÔNG PUSH)
+# OUTPUT PM2.5 (PUSH LÊN GIT)
 # =============================================================================
-# Dữ liệu và bản đồ PM2.5 chỉ giữ ở máy local
-output_csv_pm25/
-output_images_pm25/
+# Dữ liệu và bản đồ PM2.5 cũng được push lên GitHub
+# output_csv_pm25/
+# output_images_pm25/
 
 # =============================================================================
 # FILES TẠM / DRAFT / CŨ
@@ -151,7 +151,7 @@ logs/
 # !.gitignore                ← File này - PUSH
 
 # =============================================================================
-# GIỮ LOCAL (KHÔNG PUSH)
+# PUSH LÊN GIT (TẤT CẢ OUTPUTS)
 # =============================================================================
-# output_csv_pm25/           ← Kết quả PM2.5 - CHỈ GIỮ LOCAL
-# output_images_pm25/        ← Bản đồ PM2.5 - CHỈ GIỮ LOCAL
+# output_csv_pm25/           ← Kết quả PM2.5 - PUSH
+# output_images_pm25/        ← Bản đồ PM2.5 - PUSH
