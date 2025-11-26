@@ -130,7 +130,11 @@ accuracy = accuracy_score(y_test, y_pred)
 
 **Đánh giá**: Decision Tree vượt trội hơn Neural Network ở tất cả các chỉ số, đặc biệt Macro F1 (+14.36%)
 
-### 4.3 Hiệu suất từng lớp (Class-wise Performance)
+#### 4.3 Classification Report
+
+![Classification Report](decision_tree_classification_report.png)
+
+**Hiệu suất từng lớp (Class-wise Performance)**:
 
 | Lớp            | Precision | Recall   | F1-Score | Support | Phân tích                                                      |
 | -------------- | --------- | -------- | -------- | ------- | -------------------------------------------------------------- |
