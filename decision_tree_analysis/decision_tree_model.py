@@ -196,19 +196,28 @@ def plot_confusion_matrix(cm, label_encoder, save_path='../output_reports/decisi
     
     plt.figure(figsize=(10, 8))
     
+    # Logical order
+    logical_order = ['Tốt', 'Trung bình', 'Kém', 'Xấu', 'Rất xấu']
+    
+    # Get label indices in logical order
+    label_indices = [list(label_encoder.classes_).index(label) for label in logical_order]
+    
+    # Reorder confusion matrix
+    cm_reordered = cm[np.ix_(label_indices, label_indices)]
+    
     # Tính phần trăm
-    cm_percent = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis] * 100
+    cm_percent = cm_reordered.astype('float') / cm_reordered.sum(axis=1)[:, np.newaxis] * 100
     
     # Annotations
-    annot = np.empty_like(cm).astype(str)
-    for i in range(cm.shape[0]):
-        for j in range(cm.shape[1]):
-            annot[i, j] = f'{cm[i, j]}\n({cm_percent[i, j]:.1f}%)'
+    annot = np.empty_like(cm_reordered).astype(str)
+    for i in range(cm_reordered.shape[0]):
+        for j in range(cm_reordered.shape[1]):
+            annot[i, j] = f'{cm_reordered[i, j]}\n({cm_percent[i, j]:.1f}%)'
     
     sns.heatmap(
-        cm, annot=annot, fmt='', cmap='Blues',
-        xticklabels=label_encoder.classes_,
-        yticklabels=label_encoder.classes_,
+        cm_reordered, annot=annot, fmt='', cmap='Blues',
+        xticklabels=logical_order,
+        yticklabels=logical_order,
         cbar_kws={'label': 'Count'}
     )
     
