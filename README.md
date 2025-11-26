@@ -3,28 +3,82 @@
 ## Cài đặt
 
 ```bash
-pip install torch numpy pandas scikit-learn pillow matplotlib joblib
+pip install torch numpy pandas scikit-learn pillow matplotlib joblib seaborn
 ```
 
-## Chạy Model
+## Chạy Models
 
-1. Mở notebook:
+### 1. Neural Network Model (Baseline)
+
+**Option A: Chạy Notebook**
 
 ```bash
-jupyter notebook onkk-model-test.ipynb
+jupyter notebook model/onkk-model-test.ipynb
 ```
 
-2. Chạy tất cả cells (Run All)
-
-## Output
-
-- **Báo cáo đánh giá**: `output_reports/classification_report_notebook.txt`
-- **Bản đồ AQI**: `output_images/AQI_Map_*.png`
-- **CSV predictions**: `output_csv/TIF_Predictions_*.csv`
-
-## Kết quả
+**Kết quả:**
 
 - Accuracy: **55.16%**
 - Precision: **0.6479**
 - Recall: **0.5516**
 - F1-Score: **0.5538**
+
+**Output:**
+
+- Báo cáo: `output_reports/classification_report_notebook.txt`
+- Bản đồ AQI: `output_images/AQI_Map_*.png`
+- CSV predictions: `output_csv/TIF_Predictions_*.csv`
+
+---
+
+### 2. Decision Tree Model (Better Performance)
+
+**Option A: Chạy Python Script**
+
+```bash
+cd decision_tree_analysis
+python decision_tree_model.py
+```
+
+**Option B: Chạy Notebook trong VS Code**
+
+Mở file `decision_tree_analysis/decision-tree-model.ipynb` trong VS Code và click **Run All** hoặc chạy từng cell bằng **Shift+Enter**.
+
+_Lưu ý: VS Code hỗ trợ chạy Jupyter notebook trực tiếp, không cần cài đặt Jupyter server riêng._
+
+**Kết quả:**
+
+- Accuracy: **60.11%** (tốt hơn Neural Network 4.95%)
+- Precision: **0.6449**
+- Recall: **0.6011**
+- F1-Score: **0.6098**
+
+**Feature Importance:**
+
+1. PRES2M (Áp suất): 29.30%
+2. SQRT_SEA_DEM_LAT: 21.97%
+3. TP (Lượng mưa): 20.82%
+
+**Output:**
+
+- Model files: `decision_tree_analysis/decision_tree_*.pkl`
+- Báo cáo: `output_reports/decision_tree_report.txt`
+- Confusion Matrix: `output_reports/decision_tree_confusion_matrix.png`
+- Feature Importance: `output_reports/decision_tree_feature_importance.png`
+- Bản đồ AQI: `output_images_dt/AQI_Map_DT_*.png`
+- CSV predictions: `output_csv_dt/TIF_Predictions_DT_*.csv`
+
+---
+
+### 3. PM2.5 Regression Model
+
+**Chạy Notebook:**
+
+```bash
+jupyter notebook pm25_analysis/pm25-regression-analysis.ipynb
+```
+
+**Output:**
+
+- Model: `pm25_analysis/pm25_regressor.pth`
+- Báo cáo: `output_reports/pm25_regression_report.txt`
