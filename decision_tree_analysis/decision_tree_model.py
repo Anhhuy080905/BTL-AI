@@ -460,22 +460,30 @@ def process_tif_to_predictions(model, scaler, label_encoder, date, feature_maps_
     predictions_2d = predictions.reshape(shape)
     
     # Label encoder sắp xếp theo alphabet: ['Kém', 'Rất xấu', 'Trung bình', 'Tốt', 'Xấu']
+    # Map từ encoded value sang logical order để hiển thị đúng trên colorbar
+    # Encoded: 0=Kém, 1=Rất xấu, 2=Trung bình, 3=Tốt, 4=Xấu
+    # Remap to: -1=NoData, 0=Tốt, 1=Trung bình, 2=Kém, 3=Xấu, 4=Rất xấu
+    
+    # Create remapped predictions for visualization
+    remap_dict = {-1: -1, 3: 0, 2: 1, 0: 2, 4: 3, 1: 4}  # old_value: new_value
+    predictions_remapped = np.vectorize(remap_dict.get)(predictions_2d)
+    
     colors = [
         '#FFFFFF',  # -1: NoData
-        '#FF7E00',  # 0: Kém
-        '#8F3F97',  # 1: Rất xấu
-        '#FFFF00',  # 2: Trung bình
-        '#00E400',  # 3: Tốt
-        '#FF0000',  # 4: Xấu
+        '#00E400',  # 0: Tốt (green)
+        '#FFFF00',  # 1: Trung bình (yellow)
+        '#FF7E00',  # 2: Kém (orange)
+        '#FF0000',  # 3: Xấu (red)
+        '#8F3F97',  # 4: Rất xấu (purple)
     ]
     
     cmap = ListedColormap(colors)
     
     fig, ax = plt.subplots(figsize=(12, 10))
-    im = ax.imshow(predictions_2d, cmap=cmap, vmin=-1, vmax=4, interpolation='nearest')
+    im = ax.imshow(predictions_remapped, cmap=cmap, vmin=-1, vmax=4, interpolation='nearest')
     
     cbar = plt.colorbar(im, ax=ax, ticks=[-1, 0, 1, 2, 3, 4])
-    cbar.ax.set_yticklabels(['NoData', 'Kém', 'Rất xấu', 'Trung bình', 'Tốt', 'Xấu'])
+    cbar.ax.set_yticklabels(['NoData', 'Tốt', 'Trung bình', 'Kém', 'Xấu', 'Rất xấu'])
     
     ax.set_title(f'Decision Tree - AQI Map {date}', fontsize=16, fontweight='bold', pad=20)
     ax.axis('off')
