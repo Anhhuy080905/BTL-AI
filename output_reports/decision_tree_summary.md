@@ -187,7 +187,7 @@ accuracy = accuracy_score(y_test, y_pred)
 
 ---
 
-## 10. Evaluation details (full)
+## 11. Evaluation details (full)
 
 ### Classification report (scikit-learn)
 
@@ -233,7 +233,22 @@ Note: Decision Trees do not produce epoch-by-epoch training history like neural 
 
 ---
 
-## 5. FEATURE IMPORTANCE
+## 5. PHÂN PHỐI DỮ LIỆU (Class Distribution)
+
+![Class Distribution Train vs Test](decision_tree_class_distribution.png)
+
+**Nhận xét**: 
+- Lớp "Trung bình" chiếm đa số (~52% train, ~53% test)
+- Lớp "Rất xấu" rất hiếm (1.4% train, 0.6% test)
+- Phân chia train/test giữ tỷ lệ đồng đều nhờ `stratify=y_encoded`
+
+---
+
+## 6. FEATURE IMPORTANCE
+
+![Feature Importance Chart](decision_tree_feature_importance.png)
+
+**Bảng xếp hạng**:
 
 | Thứ hạng | Feature              | Importance | Giải thích                 |
 | -------- | -------------------- | ---------- | -------------------------- |
@@ -246,7 +261,11 @@ Note: Decision Trees do not produce epoch-by-epoch training history like neural 
 
 ---
 
-## 6. MA TRẬN NHẦM LẪN
+## 7. MA TRẬN NHẦM LẪN
+
+![Confusion Matrix Heatmap](decision_tree_confusion_matrix.png)
+
+**Bảng số liệu** (hàng = thực tế, cột = dự đoán):
 
 |                | Kém    | Rất xấu | Trung bình | Tốt    | Xấu    |
 | -------------- | ------ | ------- | ---------- | ------ | ------ |
@@ -256,11 +275,11 @@ Note: Decision Trees do not produce epoch-by-epoch training history like neural 
 | **Tốt**        | 0      | 0       | 10         | **39** | 1      |
 | **Xấu**        | 6      | 2       | 2          | 1      | **23** |
 
-**Nhận xét**: Sai số tập trung ở các lớp lân cận (Kém ↔ Trung bình, Kém ↔ Xấu)
+**Nhận xét**: Sai số tập trung ở các lớp lân cận (Kém ↔ Trung bình, Kém ↔ Xấu). Heatmap cho thấy đường chéo chính (dự đoán đúng) có màu đậm hơn.
 
 ---
 
-## 7. ƯU ĐIỂM & HẠN CHẾ (Tổng hợp)
+## 8. ƯU ĐIỂM & HẠN CHẾ (Tổng hợp)
 
 ### ✅ Ưu điểm
 
@@ -277,7 +296,7 @@ Note: Decision Trees do not produce epoch-by-epoch training history like neural 
 
 ---
 
-## 8. ỨNG DỤNG
+## 9. ỨNG DỤNG
 
 **Tạo bản đồ AQI từ dữ liệu vệ tinh**:
 
@@ -295,7 +314,7 @@ Note: Decision Trees do not produce epoch-by-epoch training history like neural 
 
 ---
 
-## 9. KHUYẾN NGHỊ CẢI THIỆN
+## 10. KHUYẾN NGHỊ CẢI THIỆN
 
 1. **Thu thập thêm dữ liệu** lớp "Xấu" và "Rất xấu"
 2. **Áp dụng SMOTE** để tạo mẫu tổng hợp cho lớp thiểu số

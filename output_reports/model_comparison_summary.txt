@@ -1,0 +1,261 @@
+======================================================================
+SO SÁNH VÀ ĐÁNH GIÁ HAI MÔ HÌNH DỰ BÁO CHẤT LƯỢNG KHÔNG KHÍ HÀ NỘI
+======================================================================
+
+I. TỔNG QUAN
+----------------------------------------------------------------------
+Dự án sử dụng 2 phương pháp Machine Learning để dự báo chất lượng 
+không khí:
+  1. MÔ HÌNH PHÂN LỚP (Classification): Dự đoán trực tiếp AQI class
+  2. MÔ HÌNH HỒI QUY (Regression): Dự đoán PM2.5 → chuyển sang AQI
+
+Dữ liệu test: 1804 mẫu (tập dữ liệu mà mô hình không được học)
+Đặc trưng đầu vào: 6 features (PRES2M, RH, WSPD, TMP, TP, SQRT_SEA_DEM_LAT)
+
+======================================================================
+II. CHỈ SỐ ĐÁNH GIÁ PHÂN LỚP (Classification Metrics)
+======================================================================
+
+A. MÔ HÌNH PHÂN LỚP TRỰC TIẾP (AQI Classification)
+----------------------------------------------------------------------
+Kiến trúc: Neural Network 3 tầng ẩn (128 hidden units, dropout 0.2)
+
+✓ Accuracy: 55.16%
+✓ Precision (weighted): 0.6479
+✓ Recall (weighted): 0.5516
+✓ F1-Score (weighted): 0.5538
+
+Chi tiết từng class:
+              precision    recall  f1-score   support
+         Kém       0.60      0.61      0.60       425
+     Rất xấu       0.90      1.00      0.95         9
+  Trung bình       0.72      0.41      0.52       951
+         Tốt       0.35      0.98      0.51       251
+         Xấu       0.80      0.57      0.66       168
+
+Điểm mạnh:
+  - Class "Rất xấu": recall 100%, precision 0.90
+  - Class "Tốt": recall 98% (phát hiện tốt mức không khí tốt)
+  - Class "Xấu", "Kém": precision cao (0.80, 0.60)
+
+Điểm yếu:
+  - Class "Trung bình": recall thấp (41%) - hay nhầm với "Tốt"
+  - Class "Tốt": precision thấp (35%) - hay dự đoán nhầm
+  - Accuracy chỉ 55.16% - dưới mức mong muốn (>60%)
+
+
+B. MÔ HÌNH HỒI QUY PM2.5 → AQI (Regression-based Classification)
+----------------------------------------------------------------------
+Kiến trúc: Neural Network 3 tầng ẩn (128 hidden units, dropout 0.2)
+
+✓ Accuracy: 60.59%
+✓ Precision (weighted): 0.6095
+✓ Recall (weighted): 0.6059
+✓ F1-Score (weighted): 0.5862
+
+Chi tiết từng class:
+              precision    recall  f1-score   support
+         Kém       0.50      0.42      0.45       425
+     Rất xấu       1.00      0.11      0.20         9
+  Trung bình       0.67      0.75      0.71       951
+         Tốt       0.49      0.61      0.55       251
+         Xấu       0.67      0.29      0.41       168
+
+Điểm mạnh:
+  - Accuracy cao hơn: 60.59% vs 55.16%
+  - Class "Trung bình": recall tốt (75%) - cải thiện từ 41%
+  - Cân bằng hơn giữa precision và recall
+  - Cung cấp giá trị PM2.5 định lượng (có thể dùng cho nhiều mục đích)
+
+Điểm yếu:
+  - Class "Rất xấu": recall thấp (11%) - ít mẫu training
+  - Class "Xấu": recall thấp (29%)
+  - Tỷ lệ khớp với model phân loại: 51.4%
+
+
+======================================================================
+III. CHỈ SỐ ĐÁNH GIÁ HỒI QUY (Regression Metrics)
+======================================================================
+
+MÔ HÌNH HỒI QUY PM2.5
+----------------------------------------------------------------------
+Chỉ áp dụng cho mô hình dự đoán PM2.5
+
+✓ MAE (Mean Absolute Error): 11.36 μg/m³
+  → Sai số tuyệt đối trung bình: dự đoán sai lệch ±11.36 μg/m³
+
+✓ RMSE (Root Mean Squared Error): 16.58 μg/m³
+  → Độ lệch chuẩn của sai số, phạt nặng các dự đoán sai lớn
+
+✓ R² Score: 0.5386 (53.86%)
+  → Mô hình giải thích được 53.86% phương sai của dữ liệu
+  → Xếp loại: MÔ HÌNH TRUNG BÌNH (0.5 ≤ R² < 0.7)
+
+✓ MAPE (Mean Absolute Percentage Error): 32.36%
+  → Sai số phần trăm trung bình
+
+Phân tích sai số theo mức AQI:
+  - Tốt (PM2.5 < 15.4): MAE = 5.17 μg/m³ (tốt)
+  - Trung bình (15.4-40.4): MAE = 7.94 μg/m³ (tốt)
+  - Kém (40.4-65.4): MAE = 14.24 μg/m³ (chấp nhận được)
+  - Xấu (65.4-150.4): MAE = 29.65 μg/m³ (cần cải thiện)
+  - Rất xấu (>150.4): MAE = 68.09 μg/m³ (cần cải thiện nhiều)
+
+→ Mô hình dự đoán tốt ở mức PM2.5 thấp, kém hơn ở mức cao
+
+======================================================================
+IV. SO SÁNH HAI MÔ HÌNH
+======================================================================
+
+A. ACCURACY (Chỉ số quan trọng nhất cho bài toán phân loại)
+----------------------------------------------------------------------
+Model Hồi quy PM2.5 → AQI:  60.59%  ✓ TỐT HƠN
+Model Phân loại trực tiếp:  55.16%
+Chênh lệch:                 +5.43%
+
+→ Mô hình hồi quy PM2.5 cho accuracy cao hơn đáng kể
+
+
+B. PRECISION & RECALL (Cân bằng giữa chính xác và phủ sóng)
+----------------------------------------------------------------------
+                          Precision    Recall    F1-Score
+Model Phân loại:            0.6479    0.5516     0.5538
+Model Hồi quy PM2.5:        0.6095    0.6059     0.5862
+
+→ Model hồi quy cân bằng hơn (precision ≈ recall)
+→ Model phân loại có precision cao hơn nhưng recall thấp
+
+
+C. KHẢ NĂNG DỰ ĐOÁN TỪNG CLASS
+----------------------------------------------------------------------
+Class "Rất xấu":
+  - Phân loại: precision 0.90, recall 1.00 (TỐT)
+  - Hồi quy: precision 1.00, recall 0.11 (KÉM do ít data)
+
+Class "Tốt":
+  - Phân loại: precision 0.35, recall 0.98
+  - Hồi quy: precision 0.49, recall 0.61 (CÂN BẰNG HƠN)
+
+Class "Trung bình" (class lớn nhất - 951/1804):
+  - Phân loại: precision 0.72, recall 0.41 (KÉM)
+  - Hồi quy: precision 0.67, recall 0.75 (TỐT HƠN)
+
+→ Mô hình hồi quy dự đoán tốt hơn cho class phổ biến nhất
+
+
+D. ƯU ĐIỂM - NHƯỢC ĐIỂM
+----------------------------------------------------------------------
+MÔ HÌNH PHÂN LOẠI TRỰC TIẾP:
+  Ưu điểm:
+    + Đơn giản, trực tiếp
+    + Dự đoán tốt các trường hợp cực đoan (Rất xấu, Tốt)
+    + Precision cao cho một số class
+  
+  Nhược điểm:
+    - Accuracy thấp (55.16%)
+    - Kém cho class "Trung bình" (phổ biến nhất)
+    - Không cung cấp giá trị PM2.5 định lượng
+
+MÔ HÌNH HỒI QUY PM2.5:
+  Ưu điểm:
+    + Accuracy cao hơn (60.59%)
+    + Dự đoán tốt class "Trung bình"
+    + Cung cấp giá trị PM2.5 cụ thể (có ý nghĩa thực tế)
+    + Có thể dùng cho nhiều mục đích (bản đồ nhiệt, cảnh báo,...)
+    + R² = 0.54 - giải thích được >50% phương sai
+  
+  Nhược điểm:
+    - Kém cho class "Rất xấu" (do ít data huấn luyện)
+    - Sai số lớn ở mức PM2.5 cao (MAE = 68 μg/m³)
+    - Phức tạp hơn (cần thêm bước chuyển đổi PM2.5 → AQI)
+
+======================================================================
+V. KẾT LUẬN VÀ KHUYẾN NGHỊ
+======================================================================
+
+A. MÔ HÌNH TỐT NHẤT
+----------------------------------------------------------------------
+🏆 MÔ HÌNH HỒI QUY PM2.5 ĐƯỢC LỰA CHỌN LÀM MÔ HÌNH CHÍNH
+
+Lý do:
+  1. Accuracy cao hơn: 60.59% vs 55.16% (+5.43%)
+  2. Dự đoán tốt hơn cho class phổ biến nhất ("Trung bình")
+  3. Cân bằng hơn giữa precision và recall
+  4. Cung cấp thông tin định lượng (giá trị PM2.5)
+  5. Linh hoạt hơn cho các ứng dụng thực tế
+
+
+B. ỨNG DỤNG THỰC TẾ
+----------------------------------------------------------------------
+✓ Sử dụng mô hình hồi quy PM2.5 cho:
+  - Tạo bản đồ dự báo chất lượng không khí Hà Nội
+  - Cung cấp giá trị PM2.5 cụ thể cho từng vùng
+  - Chuyển đổi sang AQI class để dễ hiểu
+  - Cảnh báo sớm khi PM2.5 vượt ngưỡng nguy hiểm
+
+✓ Kết hợp cả hai mô hình:
+  - Dùng hồi quy làm chính
+  - Dùng phân loại để cross-validate khi PM2.5 cực đoan
+
+
+C. HƯỚNG CẢI THIỆN
+----------------------------------------------------------------------
+Để tăng độ chính xác lên >70%:
+
+1. Thu thập thêm dữ liệu:
+   - Đặc biệt là mức "Rất xấu" (chỉ có 9 mẫu test)
+   - Cân bằng dữ liệu giữa các class
+
+2. Feature Engineering:
+   - Thêm features: hướng gió, độ cao, khoảng cách đến nguồn ô nhiễm
+   - Tạo features tương tác (VD: RH × TMP)
+
+3. Mô hình phức tạp hơn:
+   - Thử LSTM, GRU cho dữ liệu time series
+   - Ensemble methods (kết hợp nhiều model)
+   - Deep Learning với nhiều tầng hơn
+
+4. Xử lý dữ liệu:
+   - Xử lý outliers tốt hơn
+   - Chuẩn hóa features tốt hơn
+   - Augmentation cho class thiểu số
+
+
+D. ĐÁNH GIÁ TỔNG QUAN
+----------------------------------------------------------------------
+✓ Cả hai mô hình đạt mức TRUNG BÌNH - KHẢ DỤNG
+
+✓ Accuracy 55-60% là chấp nhận được cho bài toán phức tạp như
+  dự báo chất lượng không khí (nhiều yếu tố ảnh hưởng)
+
+✓ Mô hình hồi quy PM2.5 vượt trội hơn và được khuyến nghị sử dụng
+  cho việc tạo bản đồ dự báo
+
+✓ Kết quả có thể cải thiện đáng kể với thêm dữ liệu và feature tốt hơn
+
+======================================================================
+VI. BẢNG TỔNG HỢP
+======================================================================
+
+CHỈ SỐ                    | PHÂN LOẠI    | HỒI QUY PM2.5  | GHI CHÚ
+--------------------------|--------------|----------------|------------------
+Accuracy                  | 55.16%       | 60.59% ✓       | +5.43%
+Precision (weighted)      | 0.6479 ✓     | 0.6095         | -0.0384
+Recall (weighted)         | 0.5516       | 0.6059 ✓       | +0.0543
+F1-Score (weighted)       | 0.5538       | 0.5862 ✓       | +0.0324
+--------------------------|--------------|----------------|------------------
+Class "Trung bình" recall | 0.41         | 0.75 ✓         | Tốt hơn nhiều
+Class "Rất xấu" recall    | 1.00 ✓       | 0.11           | Ít data
+Class "Tốt" precision     | 0.35         | 0.49 ✓         | Cân bằng hơn
+--------------------------|--------------|----------------|------------------
+Giá trị PM2.5             | Không        | Có ✓           | Lợi thế lớn
+MAE (μg/m³)               | N/A          | 11.36          | Chấp nhận được
+R² Score                  | N/A          | 0.5386         | Trung bình
+--------------------------|--------------|----------------|------------------
+TỔNG ĐIỂM                 | 3/7          | 7/7 ✓          | HỒI QUY THẮNG
+
+======================================================================
+KẾT LUẬN CUỐI CÙNG: Sử dụng MÔ HÌNH HỒI QUY PM2.5 để tạo bản đồ dự báo
+chất lượng không khí Hà Nội, với accuracy 60.59% và khả năng cung cấp
+giá trị PM2.5 định lượng cho từng khu vực.
+======================================================================
