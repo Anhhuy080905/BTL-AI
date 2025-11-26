@@ -308,13 +308,38 @@ Note: Decision Trees do not produce epoch-by-epoch training history like neural 
 - Output: Bản đồ màu + CSV predictions
 - Đã xử lý: 6 ngày (20200101, 20200529, 20200721, 20200810, 20201015, 20201215)
 
-**Color mapping** (theo alphabet):
+**Color mapping** (theo thứ tự logic):
 
 - Xanh lá (#00E400): Tốt
 - Vàng (#FFFF00): Trung bình
 - Cam (#FF7E00): Kém
 - Đỏ (#FF0000): Xấu
 - Tím (#8F3F97): Rất xấu
+
+### 9.1 Kết quả bản đồ AQI
+
+**Ngày 01/01/2020** (Mùa đông):
+![AQI Map 20200101](../output_images_dt/AQI_Map_DT_20200101.png)
+
+**Ngày 29/05/2020** (Cuối xuân):
+![AQI Map 20200529](../output_images_dt/AQI_Map_DT_20200529.png)
+
+**Ngày 21/07/2020** (Mùa hè):
+![AQI Map 20200721](../output_images_dt/AQI_Map_DT_20200721.png)
+
+**Ngày 10/08/2020** (Mùa hè):
+![AQI Map 20200810](../output_images_dt/AQI_Map_DT_20200810.png)
+
+**Ngày 15/10/2020** (Mùa thu):
+![AQI Map 20201015](../output_images_dt/AQI_Map_DT_20201015.png)
+
+**Ngày 15/12/2020** (Mùa đông):
+![AQI Map 20201215](../output_images_dt/AQI_Map_DT_20201215.png)
+
+**Nhận xét**:
+- Chất lượng không khí thay đổi theo mùa
+- Mùa hè (tháng 7-8): Nhiều vùng "Tốt" (xanh lá) do mưa nhiều
+- Mùa đông (tháng 12-1): Xuất hiện nhiều vùng "Kém" và "Xấu" (cam, đỏ) hơn
 
 ---
 
