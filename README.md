@@ -70,7 +70,7 @@ _Lưu ý: VS Code hỗ trợ chạy Jupyter notebook trực tiếp, không cần
 
 ---
 
-### 3. PM2.5 Regression Model
+### 3. PM2.5 Regression Model (Neural Network)
 
 **Chạy Notebook:**
 
@@ -78,7 +78,51 @@ _Lưu ý: VS Code hỗ trợ chạy Jupyter notebook trực tiếp, không cần
 jupyter notebook pm25_analysis/pm25-regression-analysis.ipynb
 ```
 
+**Kết quả:**
+
+- Test RMSE: **13.28 μg/m³**
+- Test MAE: **8.67 μg/m³**
+- Test R²: **0.7234**
+
 **Output:**
 
 - Model: `pm25_analysis/pm25_regressor.pth`
 - Báo cáo: `output_reports/pm25_regression_report.txt`
+- Bản đồ PM2.5: `output_images_pm25/PM25_Map_*.png`
+- CSV predictions: `output_csv_pm25/TIF_Predictions_PM25_*.csv`
+
+---
+
+### 4. Decision Tree PM2.5 Regressor (Interpretable)
+
+**Chạy Python Script:**
+
+```bash
+cd decision_tree_analysis
+python decision_tree_pm25_regressor.py
+```
+
+**Kết quả:**
+
+- Test RMSE: **18.76 μg/m³** 
+- Test MAE: **12.05 μg/m³**
+- Test R²: **0.5143**
+- 5-fold CV R²: **0.4732 ± 0.0974**
+
+**Feature Importance:**
+
+1. PRES2M (Áp suất): 33.40%
+2. WSPD (Tốc độ gió): 19.84%
+3. TP (Lượng mưa): 15.21%
+
+**Output:**
+
+- Model files: `decision_tree_analysis/decision_tree_pm25_*.pkl`
+- Báo cáo chi tiết: `output_reports/decision_tree_pm25_summary.md`
+- Báo cáo text: `output_reports/decision_tree_pm25_report.txt`
+- Visualizations:
+  - Feature Importance: `output_reports/dt_pm25_feature_importance.png`
+  - Predictions: `output_reports/dt_pm25_predictions.png`
+  - Residuals: `output_reports/dt_pm25_residuals.png`
+- Bản đồ PM2.5: `output_images_dt_pm25/PM25_Map_DT_*.png`
+- CSV predictions: `output_csv_dt_pm25/PM25_Predictions_DT_*.csv`
