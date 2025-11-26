@@ -214,14 +214,14 @@ weighted avg       0.64      0.60      0.61       361
 The confusion matrix (rows = actual, columns = predicted):
 
 ```
-[[40, 3, 18, 0, 24],
- [0, 2, 0, 0, 0],
- [43, 2, 113, 26, 6],
- [0, 0, 10, 39, 1],
- [6, 2, 2, 1, 23]]
+[[39, 10, 0, 0, 1],
+ [26, 113, 43, 2, 6],
+ [0, 18, 40, 3, 24],
+ [0, 2, 6, 2, 24],
+ [1, 1, 0, 0, 0]]
 ```
 
-Interpretation: each row corresponds to the true class in order [Kém, Rất xấu, Trung bình, Tốt, Xấu].
+Interpretation: each row corresponds to the true class in logical order [Tốt, Trung bình, Kém, Xấu, Rất xấu].
 
 ### Training history / summary
 
@@ -271,15 +271,15 @@ Note: Decision Trees do not produce epoch-by-epoch training history like neural 
 
 **Bảng số liệu** (hàng = thực tế, cột = dự đoán):
 
-|                | Kém    | Rất xấu | Trung bình | Tốt    | Xấu    |
-| -------------- | ------ | ------- | ---------- | ------ | ------ |
-| **Kém**        | **40** | 3       | 18         | 0      | 24     |
-| **Rất xấu**    | 0      | **2**   | 0          | 0      | 0      |
-| **Trung bình** | 43     | 2       | **113**    | 26     | 6      |
-| **Tốt**        | 0      | 0       | 10         | **39** | 1      |
-| **Xấu**        | 6      | 2       | 2          | 1      | **23** |
+|                | Tốt    | Trung bình | Kém  | Xấu  | Rất xấu |
+| -------------- | ------ | ---------- | ---- | ---- | ------- |
+| **Tốt**        | **39** | 10         | 0    | 0    | 1       |
+| **Trung bình** | 26     | **113**    | 43   | 2    | 6       |
+| **Kém**        | 0      | 18         | **40** | 3    | 24      |
+| **Xấu**        | 0      | 2          | 6    | 2    | **24**  |
+| **Rất xấu**    | 1      | 1          | 0    | 0    | **0**   |
 
-**Nhận xét**: Sai số tập trung ở các lớp lân cận (Kém ↔ Trung bình, Kém ↔ Xấu). Heatmap cho thấy đường chéo chính (dự đoán đúng) có màu đậm hơn.
+**Nhận xét**: Sai số tập trung ở các lớp lân cận (Trung bình ↔ Kém, Kém ↔ Xấu). Heatmap cho thấy đường chéo chính (dự đoán đúng) có màu đậm hơn.
 
 ---
 
