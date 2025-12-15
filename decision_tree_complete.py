@@ -65,8 +65,9 @@ class Config:
     TIF_DIR = 'Feature_Maps-20251116T094941Z-1-001/Feature_Maps'
     OUTPUT_CSV_DIR = 'output_csv_dt'
     
-    # Features
-    FEATURES = ['PRES2M', 'RH', 'WSPD', 'TMP', 'TP', 'SQRT_SEA_DEM_LAT']
+    # Features (including temporal features from feature engineering)
+    FEATURES = ['PRES2M', 'RH', 'WSPD', 'TMP', 'TP', 'SQRT_SEA_DEM_LAT', 
+                'month', 'month_sin', 'month_cos', 'day_of_year']
     
     # PM2.5 thresholds (μg/m³)
     PM25_THRESHOLDS = {
@@ -127,6 +128,49 @@ def pm25_to_aqi_class(pm25):
         return 'Rất xấu'
 
 
+def add_temporal_features(df):
+    """
+    Feature Engineering: Trích xuất đặc trưng thời gian từ cột 'time'
+    
+    Dữ liệu khí tượng và ô nhiễm mang tính chất mùa vụ và chu kỳ rất mạnh.
+    Trích xuất 4 đặc trưng thời gian:
+    - month: Tháng (Quan trọng nhất để nắm bắt được mùa)
+    - month_sin và month_cos: Giúp mô hình hiểu rằng tháng 12 rất gần với tháng 1
+    - day_of_year: Ngày trong năm - Để bắt trend mịn hơn
+    
+    Args:
+        df: DataFrame với cột 'time'
+    
+    Returns:
+        DataFrame đã được thêm các đặc trưng thời gian và loại bỏ cột 'time'
+    """
+    print("\n   Applying Feature Engineering...")
+    
+    # Convert time to datetime
+    df['time'] = pd.to_datetime(df['time'])
+    
+    # Extract month (1-12)
+    df['month'] = df['time'].dt.month
+    
+    # Convert month to sin/cos for cyclical encoding
+    # Tháng 12 (2π*12/12) sẽ gần với tháng 1 (2π*1/12) trong không gian sin/cos
+    df['month_sin'] = np.sin(2 * np.pi * df['month'] / 12)
+    df['month_cos'] = np.cos(2 * np.pi * df['month'] / 12)
+    
+    # Extract day of year (1-366)
+    df['day_of_year'] = df['time'].dt.dayofyear
+    
+    # Drop the original time column
+    df = df.drop('time', axis=1)
+    
+    print(f"     ✓ Added 4 temporal features: month, month_sin, month_cos, day_of_year")
+    print(f"     ✓ Removed 'time' column")
+    print(f"     Month range: {df['month'].min()} - {df['month'].max()}")
+    print(f"     Day of year range: {df['day_of_year'].min()} - {df['day_of_year'].max()}")
+    
+    return df
+
+
 def load_and_prepare_data():
     """Load and prepare data for training"""
     
@@ -137,6 +181,9 @@ def load_and_prepare_data():
     print(f"\n   Loading from: {Config.DATA_PATH}")
     df = pd.read_csv(Config.DATA_PATH)
     print(f"   ✓ Loaded {len(df)} samples")
+    
+    # Apply feature engineering to extract temporal features
+    df = add_temporal_features(df)
     
     # Extract features
     X = df[Config.FEATURES].values

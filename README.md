@@ -4,13 +4,17 @@
 
 Dự án sử dụng **Decision Tree** để dự báo chỉ số chất lượng không khí (AQI) tại Hà Nội dựa trên dữ liệu khí tượng.
 
-**Đầu vào**: Dữ liệu khí tượng (PRES2M, RH, WSPD, TMP, TP) và địa hình (SQRT_SEA_DEM_LAT)
+**Đầu vào**:
+
+- Dữ liệu khí tượng: PRES2M, RH, WSPD, TMP, TP (5 features)
+- Dữ liệu địa hình: SQRT_SEA_DEM_LAT (1 feature)
+- **Đặc trưng thời gian** (Feature Engineering): month, month_sin, month_cos, day_of_year (4 features)
 
 **Đầu ra**: Dự báo AQI (5 mức: Tốt, Trung bình, Kém, Xấu, Rất xấu)
 
 **Khu vực**: Hà Nội (miền Bắc Việt Nam)
 
-**Kết quả**: Accuracy **33.87%**, F1-Score **0.37** (Macro F1: **0.24**)
+**Kết quả**: Accuracy **41.42%**, F1-Score **0.43** (Macro F1: **0.32**)
 
 ---
 
@@ -23,13 +27,7 @@ Dự án sử dụng **Decision Tree** để dự báo chỉ số chất lượn
 
 ### Cài đặt Dependencies
 
-**Cách 1: Cài đặt từ requirements.txt (Khuyến nghị)**
-
-```bash
-pip install -r requirements.txt
-```
-
-**Cách 2: Cài đặt thủ công**
+**Cách 1: Cài đặt thủ công**
 
 ```bash
 # Core libraries
@@ -96,105 +94,54 @@ python check_feature_importance.py
 python create_aqi_maps.py
 ```
 
-**Kết quả:**
-
-- Accuracy: **33.87%**
-- Weighted Precision: **0.44**
-- Weighted Recall: **0.34**
-- Weighted F1-Score: **0.37**
-- Macro F1-Score: **0.24**
-
-**Output Files:**
-
-```
-output_reports/
-├── decision_tree_report.txt              # Báo cáo text chi tiết
-├── decision_tree_summary.md              # Báo cáo markdown tổng hợp
-├── decision_tree_confusion_matrix.png    # Ma trận nhầm lẫn
-└── decision_tree_feature_importance.png  # Biểu đồ tầm quan trọng features
-
-output_images_dt/
-└── AQI_Map_DT_*.png                      # Bản đồ dự báo AQI theo ngày
-
-output_csv_dt/
-└── TIF_Predictions_DT_*.csv              # Dữ liệu dự báo dạng CSV
-
-model/ (hoặc thư mục gốc)
-├── decision_tree_classifier.pkl           # Model đã training
-├── decision_tree_scaler.pkl              # StandardScaler
-└── decision_tree_label_encoder.pkl       # LabelEncoder
-```
-
 ---
 
-## Troubleshooting
+## Feature Engineering
 
-### Lỗi thường gặp
+Dữ liệu khí tượng và ô nhiễm mang tính chất **mùa vụ và chu kỳ rất mạnh**. Do đó, nhóm đã trích xuất thêm **4 cột dữ liệu từ cột 'time'** để cải thiện khả năng dự báo:
 
-**1. ModuleNotFoundError: No module named 'xxx'**
+### Đặc trưng thời gian được trích xuất:
 
-```bash
-# Cài đặt lại dependencies
-pip install -r requirements.txt
-```
+1. **`month`** (Tháng): Quan trọng nhất để nắm bắt được mùa
 
-**2. FileNotFoundError: data_onkk_clean.csv**
+   - Giá trị: 1-12
+   - Giúp model học được pattern theo mùa (Đông/Xuân ô nhiễm cao hơn Hè/Thu)
 
-```bash
-# Chạy script clean data trước
-python clean_data.py
-```
+2. **`month_sin`** và **`month_cos`**: Cyclical encoding của tháng
 
-**3. Lỗi encoding khi chạy trên Windows**
+   - Công thức:
+     - `month_sin = sin(2π × month / 12)`
+     - `month_cos = cos(2π × month / 12)`
+   - **Lợi ích**: Giúp model hiểu rằng **tháng 12 rất gần với tháng 1**
+     (điều mà biến 'month' thông thường không thể hiện được)
+   - Tháng 1 và tháng 12 có khoảng cách nhỏ trong không gian sin-cos
 
-Script đã được cấu hình UTF-8 tự động. Nếu vẫn gặp lỗi:
+3. **`day_of_year`**: Ngày trong năm (1-366)
+   - Để bắt **trend mịn hơn** trong năm
+   - Giúp model học được sự thay đổi liên tục của chất lượng không khí
 
-```bash
-# Chạy với encoding UTF-8
-chcp 65001
-python decision_tree_complete.py
-```
-
-**4. Rasterio không cài đặt được (Windows)**
-
-Rasterio là tùy chọn (optional) cho xử lý TIF files. Nếu gặp lỗi:
-
-```bash
-# Bỏ qua rasterio, vẫn chạy được model
-pip install --no-deps rasterio
-
-# Hoặc download wheel từ: https://www.lfd.uci.edu/~gohlke/pythonlibs/#rasterio
-pip install rasterio‑xxx.whl
-```
-
-**5. Out of Memory khi training**
+### Triển khai:
 
 ```python
-# Giảm kích thước GridSearch trong code
-param_grid = {
-    'max_depth': [10, 15],  # Giảm từ [5, 10, 15, 20]
-    'min_samples_split': [5, 10],  # Giảm từ [2, 5, 10]
-}
+def add_temporal_features(df):
+    # Convert time to datetime
+    df['time'] = pd.to_datetime(df['time'])
+
+    # Extract month
+    df['month'] = df['time'].dt.month
+
+    # Cyclical encoding for month
+    df['month_sin'] = np.sin(2 * np.pi * df['month'] / 12)
+    df['month_cos'] = np.cos(2 * np.pi * df['month'] / 12)
+
+    # Day of year
+    df['day_of_year'] = df['time'].dt.dayofyear
+
+    # Remove original time column
+    df = df.drop('time', axis=1)
+    return df
 ```
 
-### Kiểm tra kết quả nhanh
-
-```bash
-# Xem accuracy và metrics
-cat output_reports/decision_tree_report.txt
-
-# Xem confusion matrix
-start output_reports/decision_tree_confusion_matrix.png  # Windows
-# open output_reports/decision_tree_confusion_matrix.png  # macOS
-# xdg-open output_reports/decision_tree_confusion_matrix.png  # Linux
-```
+**Kết quả**: Tổng số features tăng từ **6 → 10 features**, giúp model học tốt hơn các pattern theo thời gian.
 
 ---
-
----
-
-## Tài liệu tham khảo
-
-- [DECISION_TREE_COMPLETE_GUIDE.md](DECISION_TREE_COMPLETE_GUIDE.md) - Hướng dẫn chi tiết
-- [TIME_SERIES_SPLIT_RESULTS.md](TIME_SERIES_SPLIT_RESULTS.md) - Kết quả Time Series validation
-- [decision_tree_summary.md](output_reports/decision_tree_summary.md) - Báo cáo đầy đủ
