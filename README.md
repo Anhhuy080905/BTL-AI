@@ -1,196 +1,200 @@
-# Dự Báo Chất Lượng Không Khí - Miền Bắc Việt Nam (Hà Nội)
+# Dự Báo Chất Lượng Không Khí - Decision Tree Model
 
-## Bài toán
+## Mô tả
+
+Dự án sử dụng **Decision Tree** để dự báo chỉ số chất lượng không khí (AQI) tại Hà Nội dựa trên dữ liệu khí tượng.
 
 **Đầu vào**: Dữ liệu khí tượng (PRES2M, RH, WSPD, TMP, TP) và địa hình (SQRT_SEA_DEM_LAT)
 
-**Đầu ra**: Dự báo AQI và nồng độ PM2.5
+**Đầu ra**: Dự báo AQI (5 mức: Tốt, Trung bình, Kém, Xấu, Rất xấu)
 
-**Khu vực**: Hà Nội (đại diện cho miền Bắc Việt Nam)
+**Khu vực**: Hà Nội (miền Bắc Việt Nam)
 
-**Phương pháp**:
-1. Tính chỉ số AQI dựa trên nồng độ PM2.5 từ trạm quan trắc
-2. Thử nghiệm 4 mô hình học máy (Neural Network & Decision Tree cho Classification & Regression)
-3. Đánh giá kết quả trên các chỉ số: Accuracy, Precision, Recall, F1, RMSE, MAE, R²
-4. Đề xuất mô hình tốt nhất cho từng task
-5. Ứng dụng tạo bản đồ dự báo PM2.5 và AQI
-6. Hiển thị bản đồ với color mapping theo chuẩn AQI
-
-**Lưu ý**: Mô hình hiện tại dự đoán AQI/PM2.5 cho **cùng ngày** dựa trên dữ liệu khí tượng. Để dự báo nhiều ngày tiếp theo, cần bổ sung mô hình time series (LSTM/GRU).
+**Kết quả**: Accuracy **33.87%**, F1-Score **0.37** (Macro F1: **0.24**)
 
 ---
 
 ## Cài đặt
 
+### Yêu cầu hệ thống
+
+- Python 3.8 trở lên
+- pip (Python package manager)
+
+### Cài đặt Dependencies
+
+**Cách 1: Cài đặt từ requirements.txt (Khuyến nghị)**
+
 ```bash
-pip install torch numpy pandas scikit-learn pillow matplotlib joblib seaborn
+pip install -r requirements.txt
 ```
 
-## Chạy Models
-
-### 1. Neural Network Model (Baseline)
-
-**Option A: Chạy Notebook**
+**Cách 2: Cài đặt thủ công**
 
 ```bash
-jupyter notebook model/onkk-model-test.ipynb
+# Core libraries
+pip install pandas numpy scikit-learn imbalanced-learn joblib
+
+# Visualization
+pip install matplotlib seaborn
+
+# Geospatial (tùy chọn, cho xử lý file TIF)
+pip install rasterio
+
+# Jupyter notebook (nếu muốn chạy .ipynb)
+pip install jupyter ipykernel
 ```
 
-**Kết quả:**
+### Kiểm tra cài đặt
 
-- Accuracy: **55.16%**
-- Precision: **0.6479**
-- Recall: **0.5516**
-- F1-Score: **0.5538**
-
-**Output:**
-
-- Báo cáo: `output_reports/classification_report_notebook.txt`
-- Bản đồ AQI: `output_images/AQI_Map_*.png`
-- CSV predictions: `output_csv/TIF_Predictions_*.csv`
+```bash
+python -c "import pandas, numpy, sklearn, joblib; print('Cài đặt thành công!')"
+```
 
 ---
 
-### 2. Decision Tree Model (Better Performance)
+## Cách chạy Decision Tree
 
-**Option A: Chạy Python Script**
+**Option A: Chạy Complete Pipeline (Tất cả trong một)**
 
 ```bash
-cd decision_tree_analysis
-python decision_tree_model.py
+python decision_tree_complete.py
 ```
 
-**Option B: Chạy Notebook trong VS Code**
+Script này sẽ:
 
-Mở file `decision_tree_analysis/decision-tree-model.ipynb` trong VS Code và click **Run All** hoặc chạy từng cell bằng **Shift+Enter**.
+- ✅ Tự động load và clean dữ liệu từ `data_onkk_clean.csv`
+- ✅ Training model với GridSearchCV + SMOTE
+- ✅ Generate tất cả báo cáo (text + markdown)
+- ✅ Tạo biểu đồ (confusion matrix, feature importance)
+- ✅ Xử lý TIF files và tạo bản đồ AQI
 
-_Lưu ý: VS Code hỗ trợ chạy Jupyter notebook trực tiếp, không cần cài đặt Jupyter server riêng._
+**Thời gian chạy**: ~2-5 phút (tùy cấu hình máy)
 
-**Kết quả:**
-
-- Accuracy: **60.11%** (tốt hơn Neural Network 4.95%)
-- Precision: **0.6449**
-- Recall: **0.6011**
-- F1-Score: **0.6098**
-
-**Feature Importance:**
-
-1. PRES2M (Áp suất): 29.30%
-2. SQRT_SEA_DEM_LAT: 21.97%
-3. TP (Lượng mưa): 20.82%
-
-**Output:**
-
-- Model files: `decision_tree_analysis/decision_tree_*.pkl`
-- Báo cáo: `output_reports/decision_tree_report.txt`
-- Confusion Matrix: `output_reports/decision_tree_confusion_matrix.png`
-- Feature Importance: `output_reports/decision_tree_feature_importance.png`
-- Bản đồ AQI: `output_images_dt/AQI_Map_DT_*.png`
-- CSV predictions: `output_csv_dt/TIF_Predictions_DT_*.csv`
-
----
-
-### 3. PM2.5 Regression Model (Neural Network)
-
-**Chạy Notebook:**
+**Option B: Chạy Jupyter Notebook**
 
 ```bash
-jupyter notebook pm25_analysis/pm25-regression-analysis.ipynb
+# Khởi động Jupyter
+jupyter notebook decision_tree_complete.ipynb
+
+# Hoặc sử dụng VS Code (mở file .ipynb và click Run All)
 ```
 
-**Kết quả:**
-
-- Test RMSE: **13.28 μg/m³**
-- Test MAE: **8.67 μg/m³**
-- Test R²: **0.7234**
-
-**Output:**
-
-- Model: `pm25_analysis/pm25_regressor.pth`
-- Báo cáo: `output_reports/pm25_regression_report.txt`
-- Bản đồ PM2.5: `output_images_pm25/PM25_Map_*.png`
-- CSV predictions: `output_csv_pm25/TIF_Predictions_PM25_*.csv`
-
----
-
-### 4. Decision Tree PM2.5 Regressor (Interpretable)
-
-**Chạy Python Script:**
+**Option C: Chạy từng bước riêng**
 
 ```bash
-cd decision_tree_analysis
-python decision_tree_pm25_regressor.py
+# Bước 1: Clean data (nếu chưa có data_onkk_clean.csv)
+python clean_data.py
+
+# Bước 2: Training và evaluation
+python decision_tree_complete.py
+
+# Bước 3: Kiểm tra feature importance
+python check_feature_importance.py
+
+# Bước 4: Tạo bản đồ AQI (tùy chọn)
+python create_aqi_maps.py
 ```
 
 **Kết quả:**
 
-- Test RMSE: **18.76 μg/m³**
-- Test MAE: **12.05 μg/m³**
-- Test R²: **0.5143**
-- 5-fold CV R²: **0.4732 ± 0.0974**
+- Accuracy: **33.87%**
+- Weighted Precision: **0.44**
+- Weighted Recall: **0.34**
+- Weighted F1-Score: **0.37**
+- Macro F1-Score: **0.24**
 
-**Feature Importance:**
+**Output Files:**
 
-1. PRES2M (Áp suất): 33.40%
-2. WSPD (Tốc độ gió): 19.84%
-3. TP (Lượng mưa): 15.21%
+```
+output_reports/
+├── decision_tree_report.txt              # Báo cáo text chi tiết
+├── decision_tree_summary.md              # Báo cáo markdown tổng hợp
+├── decision_tree_confusion_matrix.png    # Ma trận nhầm lẫn
+└── decision_tree_feature_importance.png  # Biểu đồ tầm quan trọng features
 
-**Output:**
+output_images_dt/
+└── AQI_Map_DT_*.png                      # Bản đồ dự báo AQI theo ngày
 
-- Model files: `decision_tree_analysis/decision_tree_pm25_*.pkl`
-- Báo cáo chi tiết: `output_reports/decision_tree_pm25_summary.md`
-- Báo cáo text: `output_reports/decision_tree_pm25_report.txt`
-- Visualizations:
-  - Feature Importance: `output_reports/dt_pm25_feature_importance.png`
-  - Predictions: `output_reports/dt_pm25_predictions.png`
-  - Residuals: `output_reports/dt_pm25_residuals.png`
-- Bản đồ PM2.5: `output_images_dt_pm25/PM25_Map_DT_*.png`
-- CSV predictions: `output_csv_dt_pm25/PM25_Predictions_DT_*.csv`
+output_csv_dt/
+└── TIF_Predictions_DT_*.csv              # Dữ liệu dự báo dạng CSV
 
----
-
-## So sánh Models
-
-### AQI Classification (5 classes)
-
-| Model              | Accuracy   | Precision | Recall | F1-Score | Ưu điểm                                |
-| ------------------ | ---------- | --------- | ------ | -------- | -------------------------------------- |
-| Neural Network     | 55.16%     | 0.6479    | 0.5516 | 0.5538   | Học được pattern phức tạp              |
-| **Decision Tree**  | **60.11%** | **0.6449**| **0.6011** | **0.6098** | **Dễ diễn giải, Recall cao lớp nguy hiểm** |
-
-**Kết luận**: Decision Tree tốt hơn (+4.95% accuracy), đặc biệt phù hợp cho hệ thống cảnh báo sớm.
-
-### PM2.5 Regression (continuous values)
-
-| Model                 | Test RMSE      | Test MAE       | Test R²        | Ưu điểm                           |
-| --------------------- | -------------- | -------------- | -------------- | --------------------------------- |
-| **Neural Network**    | **13.28**      | **8.67**       | **0.7234**     | **Độ chính xác cao nhất**         |
-| Decision Tree         | 18.76          | 12.05          | 0.5143         | Dễ diễn giải, trích xuất quy tắc  |
-
-**Kết luận**: Neural Network vượt trội về độ chính xác (R²=0.72), phù hợp cho dự báo PM2.5 chính xác.
+model/ (hoặc thư mục gốc)
+├── decision_tree_classifier.pkl           # Model đã training
+├── decision_tree_scaler.pkl              # StandardScaler
+└── decision_tree_label_encoder.pkl       # LabelEncoder
+```
 
 ---
 
-## Đề xuất Mô hình
+## Troubleshooting
 
-**Cho AQI Classification (5 mức: Tốt, Trung bình, Kém, Xấu, Rất xấu)**:
-- ✅ **Decision Tree** (60.11% accuracy)
-- Lý do: Recall cao cho lớp nguy hiểm (Xấu: 68%, Rất xấu: 100%), dễ diễn giải quy tắc
+### Lỗi thường gặp
 
-**Cho PM2.5 Regression (nồng độ μg/m³)**:
-- ✅ **Neural Network** (R²=0.72, RMSE=13.28)
-- Lý do: Độ chính xác cao nhất, phù hợp cho dự báo số liệu chính xác
+**1. ModuleNotFoundError: No module named 'xxx'**
 
-**Cải thiện tương lai**:
-- 🔄 Thêm mô hình **time series** (LSTM/GRU) để dự báo 1-7 ngày tiếp theo
-- 🔄 Mở rộng khu vực: Hải Phòng, Quảng Ninh, Thái Nguyên
-- 🔄 Ensemble methods: Random Forest, XGBoost để tăng accuracy lên 65-70%
+```bash
+# Cài đặt lại dependencies
+pip install -r requirements.txt
+```
+
+**2. FileNotFoundError: data_onkk_clean.csv**
+
+```bash
+# Chạy script clean data trước
+python clean_data.py
+```
+
+**3. Lỗi encoding khi chạy trên Windows**
+
+Script đã được cấu hình UTF-8 tự động. Nếu vẫn gặp lỗi:
+
+```bash
+# Chạy với encoding UTF-8
+chcp 65001
+python decision_tree_complete.py
+```
+
+**4. Rasterio không cài đặt được (Windows)**
+
+Rasterio là tùy chọn (optional) cho xử lý TIF files. Nếu gặp lỗi:
+
+```bash
+# Bỏ qua rasterio, vẫn chạy được model
+pip install --no-deps rasterio
+
+# Hoặc download wheel từ: https://www.lfd.uci.edu/~gohlke/pythonlibs/#rasterio
+pip install rasterio‑xxx.whl
+```
+
+**5. Out of Memory khi training**
+
+```python
+# Giảm kích thước GridSearch trong code
+param_grid = {
+    'max_depth': [10, 15],  # Giảm từ [5, 10, 15, 20]
+    'min_samples_split': [5, 10],  # Giảm từ [2, 5, 10]
+}
+```
+
+### Kiểm tra kết quả nhanh
+
+```bash
+# Xem accuracy và metrics
+cat output_reports/decision_tree_report.txt
+
+# Xem confusion matrix
+start output_reports/decision_tree_confusion_matrix.png  # Windows
+# open output_reports/decision_tree_confusion_matrix.png  # macOS
+# xdg-open output_reports/decision_tree_confusion_matrix.png  # Linux
+```
 
 ---
 
-## Báo cáo Chi tiết
+---
 
-- **Decision Tree AQI**: `output_reports/decision_tree_summary.md`
-- **Decision Tree PM2.5**: `output_reports/decision_tree_pm25_summary.md`
-- **Neural Network**: `output_reports/classification_report_notebook.txt`
-- **PM2.5 Regression**: `output_reports/pm25_regression_report.txt`
+## Tài liệu tham khảo
+
+- [DECISION_TREE_COMPLETE_GUIDE.md](DECISION_TREE_COMPLETE_GUIDE.md) - Hướng dẫn chi tiết
+- [TIME_SERIES_SPLIT_RESULTS.md](TIME_SERIES_SPLIT_RESULTS.md) - Kết quả Time Series validation
+- [decision_tree_summary.md](output_reports/decision_tree_summary.md) - Báo cáo đầy đủ
