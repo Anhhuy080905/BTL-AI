@@ -69,13 +69,26 @@ class Config:
     FEATURES = ['PRES2M', 'RH', 'WSPD', 'TMP', 'TP', 'SQRT_SEA_DEM_LAT', 
                 'month', 'month_sin', 'month_cos', 'day_of_year']
     
-    # PM2.5 thresholds (μg/m³)
-    PM25_THRESHOLDS = {
-        'Tốt': 15.4,
-        'Trung bình': 40.4,
-        'Kém': 65.4,
-        'Xấu': 150.4
+    # AQI Index thresholds (0-500) - theo chuẩn Việt Nam (Bảng 2)
+    AQI_THRESHOLDS = {
+        'Tốt': 50,           # 0-50: Tốt
+        'Trung bình': 100,   # 51-100: Trung bình
+        'Kém': 150,          # 101-150: Kém
+        'Xấu': 200,          # 151-200: Xấu
+        'Rất xấu': 300       # 201-300: Rất xấu
+        # 300+: Nguy hại
     }
+    
+    # PM2.5 breakpoints theo Bảng 1 (chuẩn Việt Nam)
+    PM25_BREAKPOINTS = [
+        (0, 25, 0, 50),       # PM2.5: 0-25 → AQI: 0-50
+        (25, 50, 51, 100),    # PM2.5: 25-50 → AQI: 51-100
+        (50, 80, 101, 150),   # PM2.5: 50-80 → AQI: 101-150
+        (80, 150, 151, 200),  # PM2.5: 80-150 → AQI: 151-200
+        (150, 250, 201, 300), # PM2.5: 150-250 → AQI: 201-300
+        (250, 350, 301, 400), # PM2.5: 250-350 → AQI: 301-400
+        (350, 500, 401, 500)  # PM2.5: 350-500 → AQI: 401-500
+    ]
     
     # AQI colors for visualization
     AQI_COLORS = {
@@ -114,18 +127,55 @@ class Config:
 # DATA PROCESSING
 # =============================================================================
 
-def pm25_to_aqi_class(pm25):
-    """Convert PM2.5 concentration to AQI class"""
-    if pm25 <= Config.PM25_THRESHOLDS['Tốt']:
+def pm25_to_aqi_index(pm25):
+    """
+    Convert PM2.5 concentration (μg/m³) to AQI Index (0-500)
+    Using Vietnam AQI standard (Bảng 1)
+    
+    Formula: I = ((I_high - I_low) / (BP_high - BP_low)) * (C - BP_low) + I_low
+    
+    Breakpoints:
+    - PM2.5 0-25 → AQI 0-50 (Tốt)
+    - PM2.5 25-50 → AQI 51-100 (Trung bình)
+    - PM2.5 50-80 → AQI 101-150 (Kém)
+    - PM2.5 80-150 → AQI 151-200 (Xấu)
+    - PM2.5 150-250 → AQI 201-300 (Rất xấu)
+    - PM2.5 250-350 → AQI 301-400 (Nguy hại)
+    - PM2.5 ≥350 → AQI 401-500 (Nguy hại)
+    """
+    for bp_low, bp_high, i_low, i_high in Config.PM25_BREAKPOINTS:
+        if pm25 <= bp_high:
+            return ((i_high - i_low) / (bp_high - bp_low)) * (pm25 - bp_low) + i_low
+    # If PM2.5 > 500, cap at 500
+    return 500
+
+
+def aqi_to_class(aqi_index):
+    """
+    Convert AQI Index to AQI category (Bảng 2)
+    Based on Vietnam Air Quality Index
+    """
+    if aqi_index <= Config.AQI_THRESHOLDS['Tốt']:
         return 'Tốt'
-    elif pm25 <= Config.PM25_THRESHOLDS['Trung bình']:
+    elif aqi_index <= Config.AQI_THRESHOLDS['Trung bình']:
         return 'Trung bình'
-    elif pm25 <= Config.PM25_THRESHOLDS['Kém']:
+    elif aqi_index <= Config.AQI_THRESHOLDS['Kém']:
         return 'Kém'
-    elif pm25 <= Config.PM25_THRESHOLDS['Xấu']:
+    elif aqi_index <= Config.AQI_THRESHOLDS['Xấu']:
         return 'Xấu'
-    else:
+    elif aqi_index <= Config.AQI_THRESHOLDS['Rất xấu']:
         return 'Rất xấu'
+    else:
+        return 'Nguy hại'
+
+
+def pm25_to_aqi_class(pm25):
+    """
+    Convert PM2.5 concentration to AQI class (wrapper function)
+    Uses Vietnam AQI standard
+    """
+    aqi_index = pm25_to_aqi_index(pm25)
+    return aqi_to_class(aqi_index)
 
 
 def add_temporal_features(df):
@@ -420,47 +470,32 @@ def plot_confusion_matrix(cm, label_encoder):
     
     print("\n   Generating confusion matrix...")
     
-    # Get only classes that appear in confusion matrix
-    class_labels = label_encoder.classes_
+    # Define custom order: best to worst (Tốt -> Rất xấu)
+    custom_order = ['Tốt', 'Trung bình', 'Kém', 'Xấu', 'Rất xấu']
     
-    # Define custom order: worst to best (Rất xấu -> Tốt)
-    custom_order = ['Rất xấu', 'Xấu', 'Kém', 'Trung bình', 'Tốt']
+    # Get classes that appear in label_encoder
+    encoder_classes = label_encoder.classes_
     
-    # Create mapping from encoded labels (0-4) to class names
-    # and sort by custom order (worst to best)
-    label_mapping = [(i, label) for i, label in enumerate(class_labels)]
+    # Create full confusion matrix with all 5 classes in correct order
+    cm_full = np.zeros((len(custom_order), len(custom_order)), dtype=int)
     
-    # Sort by custom order
-    def get_order_key(item):
-        label = item[1]
-        try:
-            return custom_order.index(label)
-        except ValueError:
-            return len(custom_order)  # Put unknown labels at the end
+    # Map encoder classes to custom order indices
+    encoder_to_order = {}
+    for i, label in enumerate(encoder_classes):
+        if label in custom_order:
+            encoder_to_order[i] = custom_order.index(label)
     
-    label_mapping_sorted = sorted(label_mapping, key=get_order_key)
+    # Fill in the full confusion matrix
+    for i in range(cm.shape[0]):
+        for j in range(cm.shape[1]):
+            if i in encoder_to_order and j in encoder_to_order:
+                row_idx = encoder_to_order[i]
+                col_idx = encoder_to_order[j]
+                cm_full[row_idx, col_idx] = cm[i, j]
     
-    # Create reordering indices
-    sorted_indices = [idx for idx, _ in label_mapping_sorted]
-    sorted_labels = [label for _, label in label_mapping_sorted]
-    
-    # Reorder confusion matrix rows and columns to match sorted labels
-    cm = cm[np.ix_(sorted_indices, sorted_indices)]
-    
-    # Filter out classes with no samples (all zeros in cm)
-    active_classes = []
-    active_indices = []
-    for i, label in enumerate(sorted_labels):
-        if i < len(cm) and (cm[i].sum() > 0 or cm[:, i].sum() > 0):
-            active_classes.append(label)
-            active_indices.append(i)
-    
-    # Filter confusion matrix to only active classes
-    if len(active_indices) < len(class_labels):
-        cm_filtered = cm[np.ix_(active_indices, active_indices)]
-        class_labels = active_classes
-    else:
-        cm_filtered = cm
+    # Use full confusion matrix and all class labels
+    cm_filtered = cm_full
+    active_classes = custom_order
     
     # Create figure with 2 subplots
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 7))
